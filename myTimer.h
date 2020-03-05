@@ -20,14 +20,15 @@ bool timer1Expired(void);
 #define TIMER0_PRESCALER    TIMER32_PRESCALER_1
 #define TIMER1_PRESCALER    TIMER32_PRESCALER_1
 #define ONESHOT             true
-#define REPEAT              false
+#define REPEAT              false // FOR A REPEAT CLOCK.
 
 // This is an initial value for use in the TimerExpired functions.
 #define MAX_VALUE           0xFFFFFFFF
 
 // TODO: Determine values to represent the timer count values for one second (Timer0) and one millisecond (Timer1)
-#define TIMER0_COUNT        1
-#define TIMER1_COUNT        1
+// these are the n values
+#define TIMER0_COUNT        3000000
+#define TIMER1_COUNT        3000
 
 // TODO: Define any constants that are local to myTimer.c using #define
 
