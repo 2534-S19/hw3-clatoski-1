@@ -28,11 +28,10 @@ void initTimer(unsigned int timer, unsigned int preScaler, unsigned int count)
 
 // TODO: Write a function that indicates whether Timer0 has expired.
 // You have been given a such a function in the lecture slides.
-bool timer0Expired()
+bool timer0Expired(void)
 {
-
-    return (Timer32_getValue(TIMER32_0_BASE)==0);
- /*   static unsigned int previousSnap = MAX_VALUE;
+   // return (Timer32_getValue(TIMER32_0_BASE) == 0);
+    static unsigned int previousSnap = MAX_VALUE;
     unsigned int currentSnap;
     bool returnValue;
 
@@ -40,7 +39,7 @@ bool timer0Expired()
     returnValue = (currentSnap > previousSnap);
     previousSnap = currentSnap;
     return returnValue;
-    */
+
 }
 
 // TODO: Write a function that indicates whether Timer1 has expired.
