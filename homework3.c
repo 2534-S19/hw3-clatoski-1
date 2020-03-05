@@ -3,7 +3,8 @@
 #include "myGPIO.h"
 #include "myTimer.h"
 
-
+#define PRESSED         0
+#define RELEASED        1
 
 
 int main(void)
@@ -13,11 +14,10 @@ int main(void)
   // unsigned int count1 = 0; //Given by teacher i didnt understand its usecase.
 
     // TODO: Declare the variables that main uses to interact with your state machine.
-    unsigned char buttonhistory;
 
     // Count variables to control the LEDs. Which come from the same typedef enum for the switch case statements below.
     color currentColor = Off;
-    color BLEDColor = Off;
+    color bColor = Off;
 
     // Stops the Watchdog timer.
     initBoard();
@@ -36,14 +36,19 @@ int main(void)
 
     while(1)
     {
+
         bool S1 = button_pushed(&BoosterS1);
+
         // Update the color of LED2 using count0 as the index.
         // YOU MUST WRITE THIS FUNCTION BELOW.
         changeLaunchpadLED2(currentColor);
         // Update the color of the Boosterpack LED using count1 as the index.
         // YOU MUST WRITE THIS FUNCTION BELOW.
-        changeBoosterpackLED(BLEDColor);
 
+        if (S1) {
+            bColor = updateColor(bColor);
+        }
+        changeBoosterpackLED(S1, bColor);
         // TODO: If Timer0 has expired, increment count0.
         // YOU MUST WRITE timer0expired IN myTimer.c
 
@@ -52,8 +57,8 @@ int main(void)
 
         // TODO: If Timer1 has expired, update the button history from the pushbutton value.
         // YOU MUST WRITE timer1expired IN myTimer.c
-        if (timer1Expired()) //check to see if the timer has expirerd return true when it does.
-            BLEDColor = updateColor(BLEDColor);
+      //  if (timer1Expired()) //check to see if the timer has expirerd return true when it does.
+           // BLEDColor = updateColor(BLEDColor);
       //   buttonhistory=checkStatus_BoosterpackS1();
 
 
@@ -113,41 +118,49 @@ void changeLaunchpadLED2(color currentColor)
 
 // TODO: Maybe the value of a count variable to a color for the Boosterpack LED
 // This is essentially a copy of the previous function, using a different LED
-void changeBoosterpackLED(color BLEDColor)
+void changeBoosterpackLED(bool B_Pressed, color bColor)
 {
-    switch (BLEDColor)
+
+    if(B_Pressed)
     {
-    case Off:
-        turnOff_BoosterpackLEDRed();
-        turnOff_BoosterpackLEDGreen();
-        turnOff_BoosterpackLEDBlue();
-        break;
-    case Red:
-        turnOn_BoosterpackLEDRed();
-        break;
-    case Green:
-        turnOn_BoosterpackLEDGreen();
-        turnOff_BoosterpackLEDRed();
-        break;
-    case Yellow:// red green
-        turnOn_BoosterpackLEDRed();
-        break;
-    case Blue:
-        turnOn_BoosterpackLEDBlue();
-        turnOff_BoosterpackLEDRed();
-        turnOff_BoosterpackLEDGreen();
-        break;
-    case Magenta://blue red
-        turnOn_BoosterpackLEDRed();
-        break;
-    case Cyan://green blue
-        turnOff_BoosterpackLEDRed();
-        turnOn_BoosterpackLEDGreen();
-        break;
-    case White://all on
-        turnOn_BoosterpackLEDRed();
-        break;
+        switch (bColor)
+           {
+           case Off:
+               turnOff_BoosterpackLEDRed();
+               turnOff_BoosterpackLEDGreen();
+               turnOff_BoosterpackLEDBlue();
+               break;
+           case Red:
+               turnOn_BoosterpackLEDRed();
+               break;
+           case Green:
+               turnOn_BoosterpackLEDGreen();
+               turnOff_BoosterpackLEDRed();
+               break;
+           case Yellow:// red green
+               turnOn_BoosterpackLEDRed();
+               break;
+           case Blue:
+               turnOn_BoosterpackLEDBlue();
+               turnOff_BoosterpackLEDRed();
+               turnOff_BoosterpackLEDGreen();
+               break;
+           case Magenta://blue red
+               turnOn_BoosterpackLEDRed();
+               break;
+           case Cyan://green blue
+               turnOff_BoosterpackLEDRed();
+               turnOn_BoosterpackLEDGreen();
+               break;
+           case White://all on
+               turnOn_BoosterpackLEDRed();
+               break;
+           }
     }
+    else {
+        //no changes
+    }
+
 }
 
 
@@ -190,11 +203,9 @@ color updateColor(color currentColor)
 // The button state machine should return true or false to indicate a completed, debounced button press.
 bool button_pushed(button *b)
 {
-    bool pressed = false;
-
     char Current_Button_Status = checkStatus_BoosterpackS1(); // current button
 
-    bool Timer_Exp = timer0Expired();
+    bool Timer_Exp = timer1Expired();
 
     //current debounce status
     bool Debounce_Stat;
@@ -203,8 +214,8 @@ bool button_pushed(button *b)
     switch(b->Debounce_state)
     {
     case Pressed_S:
-        Debounce_Stat = Pressed;
-        if(Current_Button_Status!=Pressed)
+        Debounce_Stat = PRESSED;
+        if(Current_Button_Status!=PRESSED)
         {
             b->Debounce_state = RTransition;
             Start_Timer = true;
@@ -212,10 +223,12 @@ bool button_pushed(button *b)
 
         break;
     case RTransition:
-        Debounce_Stat = Pressed;
-        if(Current_Button_Status==Pressed)
+        Debounce_Stat = PRESSED;
+        if(Current_Button_Status==PRESSED)
         {
             b->Debounce_state = Pressed_S;
+
+
         }
         else
         {
@@ -224,16 +237,16 @@ bool button_pushed(button *b)
         }
         break;
     case Released_S:
-        Debounce_Stat = Released;
-        if(Current_Button_Status ==Pressed)
+        Debounce_Stat = RELEASED;
+        if(Current_Button_Status ==PRESSED)
         {
             b->Debounce_state = Ptransition;
             Start_Timer = true;
         }
         break;
     case Ptransition:
-        Debounce_Stat = Released;
-        if(Current_Button_Status==Released)
+        Debounce_Stat = RELEASED;
+        if(Current_Button_Status==RELEASED)
         {
             b->Debounce_state = Released_S;
         }
@@ -245,18 +258,23 @@ bool button_pushed(button *b)
         break;
 
     }
+    if(Start_Timer)
+    {
+        Timer32_setCount(b->Timer,TIMER1_COUNT);
+        Timer32_startTimer(b->Timer,true);
+    }
 
     bool Push_Button = false;
     switch(b->Current_State)
     {
     case Pressed:
-        if(Debounce_Stat == Released)
+        if(Debounce_Stat == RELEASED)
         {
             b->Current_State = Released;
         }
         break;
     case Released:
-        if(Debounce_Stat == Pressed)
+        if(Debounce_Stat == PRESSED)
         {
             Push_Button = true;
             b->Current_State = Pressed;

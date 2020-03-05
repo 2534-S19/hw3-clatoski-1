@@ -12,6 +12,7 @@
 #include "myGPIO.h"
 
 #define PRESSED         0
+#define RELEASED        1
 
 
 //Function protoypes that return values
