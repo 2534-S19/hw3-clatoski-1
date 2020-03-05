@@ -14,6 +14,7 @@ int main(void)
 
     // TODO: Declare the variables that main uses to interact with your state machine.
     unsigned char buttonhistory;
+
     // Count variables to control the LEDs. Which come from the same typedef enum for the switch case statements below.
     color currentColor = Off;
     color BLEDColor = Off;
@@ -30,8 +31,12 @@ int main(void)
     // YOU MUST WRITE THIS FUNCTION IN myTimer.c
     initTimer(TIMER1, TIMER1_PRESCALER, TIMER1_COUNT);
 
+    button BoosterS1 = {GPIO_PORT_P5, GPIO_PIN1, Released_S, Released, TIMER1};
+
+
     while(1)
     {
+        bool S1 = button_pushed(&BoosterS1);
         // Update the color of LED2 using count0 as the index.
         // YOU MUST WRITE THIS FUNCTION BELOW.
         changeLaunchpadLED2(currentColor);
@@ -183,10 +188,85 @@ color updateColor(color currentColor)
 
 // TODO: Create a button state machine.
 // The button state machine should return true or false to indicate a completed, debounced button press.
-bool fsmBoosterpackButtonS1(unsigned int buttonhistory)
+bool button_pushed(button *b)
 {
     bool pressed = false;
 
+    char Current_Button_Status = checkStatus_BoosterpackS1(); // current button
 
-    return pressed;
+    bool Timer_Exp = timer0Expired();
+
+    //current debounce status
+    bool Debounce_Stat;
+    // timer check
+    bool Start_Timer = false;
+    switch(b->Debounce_state)
+    {
+    case Pressed_S:
+        Debounce_Stat = Pressed;
+        if(Current_Button_Status!=Pressed)
+        {
+            b->Debounce_state = RTransition;
+            Start_Timer = true;
+        }
+
+        break;
+    case RTransition:
+        Debounce_Stat = Pressed;
+        if(Current_Button_Status==Pressed)
+        {
+            b->Debounce_state = Pressed_S;
+        }
+        else
+        {
+         if(Timer_Exp)
+             b->Debounce_state = Released_S;
+        }
+        break;
+    case Released_S:
+        Debounce_Stat = Released;
+        if(Current_Button_Status ==Pressed)
+        {
+            b->Debounce_state = Ptransition;
+            Start_Timer = true;
+        }
+        break;
+    case Ptransition:
+        Debounce_Stat = Released;
+        if(Current_Button_Status==Released)
+        {
+            b->Debounce_state = Released_S;
+        }
+        else
+        {
+         if(Timer_Exp)
+             b->Debounce_state = Pressed_S;
+        }
+        break;
+
+    }
+
+    bool Push_Button = false;
+    switch(b->Current_State)
+    {
+    case Pressed:
+        if(Debounce_Stat == Released)
+        {
+            b->Current_State = Released;
+        }
+        break;
+    case Released:
+        if(Debounce_Stat == Pressed)
+        {
+            Push_Button = true;
+            b->Current_State = Pressed;
+        }
+        break;
+    }
+
+    return Push_Button;
+
+
 }
+
+
